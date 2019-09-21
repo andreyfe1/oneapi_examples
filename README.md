@@ -1,2 +1,2 @@
-# sycl_experiments
-To store some SYCL examples
+# SYCL experiments
+Repository is for storing some SYCL examples
