@@ -1,2 +1,2 @@
-# SYCL experiments
-Repository is for storing some SYCL examples
+# oneAPI & DPC++ examples
+Repository is for storing some oneAPI & DPC++ examples.
