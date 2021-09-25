@@ -3,10 +3,11 @@
 
 bool check(int* usm_ptr, const int n)
 {
-    for (int id = 0; id < n; ++id)
+    for (int id = 1; id < n; ++id)
     {
         if (usm_ptr[id] != 42 + id)
         {
+            std::cout << "id == " << id << ", expected = " << 42 + id << ", got = " << usm_ptr[id] << std::endl;
             return false;
         }
     }
@@ -15,13 +16,19 @@ bool check(int* usm_ptr, const int n)
 
 int main()
 {
-    const int n = 100'000'000;
+    const int n = 10'000'000; // should be run on CPU to reproduce failure
     sycl::queue q{sycl::property::queue::in_order{}};
     std::cout << "Running on " << q.get_device().get_info<sycl::info::device::name>() << std::endl;
 
-    int* usm_ptr_1 = sycl::malloc_shared<int>(n, q);
-    int* usm_ptr_2 = sycl::malloc_shared<int>(n, q);
-    int* usm_ptr_3 = sycl::malloc_shared<int>(n, q);
+    using allocator_t = sycl::usm_allocator<int, sycl::usm::alloc::shared>;
+    allocator_t allocator(q);
+
+    std::vector<int, allocator_t> usm_vec_1(n, allocator);
+    std::vector<int, allocator_t> usm_vec_2(n, allocator);
+    std::vector<int, allocator_t> usm_vec_3(n, allocator);
+    int* usm_ptr_1 = usm_vec_1.data();
+    int* usm_ptr_2 = usm_vec_2.data();
+    int* usm_ptr_3 = usm_vec_3.data();
 
     q.fill(usm_ptr_1, 42, n);
 
@@ -35,9 +42,5 @@ int main()
         std::cout << "passed" << std::endl;
     else
         std::cout << "failed" << std::endl;
-
-    sycl::free(usm_ptr_1, q);
-    sycl::free(usm_ptr_2, q);
-    sycl::free(usm_ptr_3, q);
     return 0;
 }
